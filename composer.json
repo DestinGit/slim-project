@@ -1,0 +1,7 @@
+{
+  "name": "m2i/slim-project",
+  "type": "project",
+  "require": {
+    "slim/slim": "^3.8"
+  }
+}
