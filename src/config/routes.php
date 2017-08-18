@@ -55,11 +55,10 @@ $app->group('/api', function () use ($app) {
 
     $app->get('/livres', function (Request $request, Response $response) {
         $sql = "SELECT * FROM livres";
+
+        /** @var \PDO $pdo */
         $pdo = $this->get('pdo');
 
-        /**
-         * @var \PDO
-         */
         $data = $pdo->query($sql)
             ->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -79,5 +78,7 @@ $app->group('/api', function () use ($app) {
         return $response->withJson($data);
     });
 
-
+    $app->group('/auteur', function ()use($app) {
+        $app->get('/', \app\Controller\AuthorController::class .':index');
+    });
 })->add($apiProtection);
