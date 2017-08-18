@@ -48,7 +48,9 @@ $app->get('/api/user/list', function (Request $request, Response $response) {
 //    return $response->withJson($data);
 //});
 
-
+//
+// Middleware pour un groupe de routes
+//
 $app->group('/api', function () use ($app) {
 
     $app->get('/livres', function (Request $request, Response $response) {
