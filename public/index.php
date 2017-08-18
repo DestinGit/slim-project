@@ -10,7 +10,7 @@ $app = new \Slim\App();
 
 // Injection de dépendences
 $container = $app->getContainer();
-$container['appConfig'] = ['appName'=> 'Slim API', 'maintenance'=>false];
+$container['appConfig'] = ['appName'=> 'Slim API', 'maintenance'=>true];
 $container['database'] = [
     'host'=>'localhost',
     'dbname'=>'bibliotheque',
@@ -79,6 +79,19 @@ $maintenanceMiddleware = function (Request $request, Response $response, Callabl
     return $response;
 };
 
+$apiProtection = function (Request $request, Response $response, Callable $next) {
+  $apiKey = 123;
+  $requestApi = $request->getParam('API_KEY') ?? null;
+  if ($apiKey == $requestApi) {
+      $newResponse = $next($request, $response);
+  } else {
+      $message = 'Accès non autorisé';
+      $newResponse = $response->withStatus(403);
+      $newResponse->getBody()->write($message);
+  }
+
+  return $newResponse;
+};
 // Définition des routes
 require __DIR__ . '/../src/routes.php';
 

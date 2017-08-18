@@ -6,7 +6,7 @@ use Slim\Http\Response;
 $app->get('/hello', function (Request $request, Response $response) {
     $name = $request->getParam('name') ?? 'world';
     return $response->getBody()->write("Hello $name");
-});
+})->add($dateMiddleware);
 
 $app->get("/hello/{name}[/{age:\d{1,3}}]", function (Request $request, Response $response, array $args) {
     $html = "<h1>Hello ". $args['name']. "</h1>";
@@ -15,7 +15,8 @@ $app->get("/hello/{name}[/{age:\d{1,3}}]", function (Request $request, Response 
     }
     return $response->getBody()->write($html);
 })
-    ->setName('hello'); // On nomme notre route pour l'utiliser dans un lien par exemple
+    ->setName('hello') // On nomme notre route pour l'utiliser dans un lien par exemple
+    ->add($goodByeMiddleware);
 
 $app->get('/list', function (Request $request, Response $response) {
     $url = $this->get('router')->pathFor('hello', ['name'=>'Alfred', 'age'=>58]);
@@ -23,7 +24,7 @@ $app->get('/list', function (Request $request, Response $response) {
     $link = "<a href=$url>Lien vers Alfred</a>";
 
     return $response->getBody()->write($link);
-});
+})->add($maintenanceMiddleware);
 
 $app->get('/api/user/list', function (Request $request, Response $response) {
     $users = [
@@ -34,15 +35,47 @@ $app->get('/api/user/list', function (Request $request, Response $response) {
     return $response->withJson($users);
 });
 
-$app->get('/livres', function (Request $request, Response $response) {
-    $sql = "SELECT * FROM livres";
-    $pdo = $this->get('pdo');
+//$app->get('/livres', function (Request $request, Response $response) {
+//    $sql = "SELECT * FROM livres";
+//    $pdo = $this->get('pdo');
+//
+//    /**
+//     * @var \PDO
+//     */
+//    $data = $pdo->query($sql)
+//                ->fetchAll(\PDO::FETCH_ASSOC);
+//
+//    return $response->withJson($data);
+//});
 
-    /**
-     * @var \PDO
-     */
-    $data = $pdo->query($sql)
-                ->fetchAll(\PDO::FETCH_ASSOC);
-//var_dump($data);
-    return $response->withJson($data);
-});
+
+$app->group('/api', function () use ($app) {
+
+    $app->get('/livres', function (Request $request, Response $response) {
+        $sql = "SELECT * FROM livres";
+        $pdo = $this->get('pdo');
+
+        /**
+         * @var \PDO
+         */
+        $data = $pdo->query($sql)
+            ->fetchAll(\PDO::FETCH_ASSOC);
+
+        return $response->withJson($data);
+    });
+
+    $app->get('/livre/{id:\d+}', function (Request $request, Response $response, array $args) {
+        $sql = "SELECT * FROM livres WHERE id = :id";
+        $pdo = $this->get('pdo');
+
+        /** @var \PDO */
+         $statement = $pdo->prepare($sql);
+         $statement->execute($args);
+
+        $data = $statement->fetchAll(\PDO::FETCH_ASSOC);
+
+        return $response->withJson($data);
+    });
+
+
+})->add($apiProtection);
