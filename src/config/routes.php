@@ -1,6 +1,7 @@
 <?php
 use Slim\Http\Request;
 use Slim\Http\Response;
+//use app\Controller\AuthorController;
 
 // Définition des routes
 $app->get('/hello', function (Request $request, Response $response) {
@@ -79,6 +80,6 @@ $app->group('/api', function () use ($app) {
     });
 
     $app->group('/auteur', function ()use($app) {
-        $app->get('/', \app\Controller\AuthorController::class .':index');
+        $app->get('/', \app\Controller\AuthorController::class.':index');
     });
 })->add($apiProtection);
