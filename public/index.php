@@ -1,32 +1,86 @@
 <?php
+
+use Psr\Container\ContainerInterface;
+
 require __DIR__ . '/../vendor/autoload.php';
 use Slim\Http\Request;
 use Slim\Http\Response;
-
 // Instanciation de l'application
 $app = new \Slim\App();
 
-// Définition des routes
-$app->get('/hello', function (Request $request, Response $response) {
-    $name = $request->getParam('name') ?? 'world';
-    return $response->getBody()->write("Hello $name");
-});
+// Injection de dépendences
+$container = $app->getContainer();
+$container['appConfig'] = ['appName'=> 'Slim API', 'maintenance'=>false];
+$container['database'] = [
+    'host'=>'localhost',
+    'dbname'=>'bibliotheque',
+    'user'=>'root',
+    'password'=>''
+];
+$container['pdo'] = function (ContainerInterface $container) {
+    $host = $container->get('database')['host'];
+    $dbname = $container->get('database')['dbname'];
+    $dsn = "mysql:host={$host};dbname={$dbname};charset=utf8";
 
-$app->get("/hello/{name}[/{age:\d{1,3}}]", function (Request $request, Response $response, array $args) {
-    $html = "<h1>Hello ". $args['name']. "</h1>";
-    if (isset($args['age'])) {
-        $html .= "<h2> Vous avez {$args["age"]} ans </h2>";
+    return new \PDO($dsn,
+        $container->get('database')['user'],
+        $container->get('database')['password']
+        );
+};
+
+// Middlewares
+//$app->add(function (Request $request, Response $response, Callable $next){
+//    $response->getBody()->write("Nous sommes le ". date("d/m/Y"));
+//
+//    return $next($request, $response);
+//});
+//
+//$app->add(function (Request $request, Response $response, Callable $next){
+//    $response = $next($request, $response);
+//
+//    $response->getBody()->write("Good bye");
+//    return $response;
+//});
+//
+//$app->add(function (Request $request, Response $response, Callable $next){
+//    $maintenance = $this->get("appConfig")["maintenance"]??false;
+//    if($maintenance){
+//        $message = "Le site est en maintenance, revenez plus tard";
+//        $response->getBody()->write($message);
+//    } else {
+//        $next($request, $response);
+//    }
+//    return $response;
+//});
+
+// OU
+
+$dateMiddleware = function (Request $request, Response $response, Callable $next){
+    $response->getBody()->write("Nous sommes le ". date("d/m/Y"));
+
+    return $next($request, $response);
+};
+
+$goodByeMiddleware = function (Request $request, Response $response, Callable $next){
+    $response = $next($request, $response);
+
+    $response->getBody()->write("Good bye");
+    return $response;
+};
+
+$maintenanceMiddleware = function (Request $request, Response $response, Callable $next){
+    $maintenance = $this->get("appConfig")["maintenance"]??false;
+    if($maintenance){
+        $message = "Le site est en maintenance, revenez plus tard";
+        $response->getBody()->write($message);
+    } else {
+        $next($request, $response);
     }
-    return $response->getBody()->write($html);
-})
-    ->setName('hello'); // On nomme notre route pour l'utiliser dans un lien par exemple
+    return $response;
+};
 
-$app->get('/list', function (Request $request, Response $response) {
-    $url = $this->get('router')->pathFor('hello', ['name'=>'Alfred', 'age'=>58]);
+// Définition des routes
+require __DIR__ . '/../src/routes.php';
 
-    $link = "<a href=$url>Lien vers Alfred</a>";
-
-    return $response->getBody()->write($link);
-});
 // Exécution de la'application
 $app->run();
