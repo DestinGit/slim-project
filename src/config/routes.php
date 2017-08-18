@@ -81,5 +81,6 @@ $app->group('/api', function () use ($app) {
 
     $app->group('/auteur', function ()use($app) {
         $app->get('/', \app\Controller\AuthorController::class.':index');
+        $app->post('/new', \app\Controller\AuthorController::class . ':newAction');
     });
 })->add($apiProtection);

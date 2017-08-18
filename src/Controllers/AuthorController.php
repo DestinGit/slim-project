@@ -14,4 +14,14 @@ class AuthorController
 
         return $response->withJson($data);
     }
+
+    public function newAction(Request $request, Response $response) {
+        $data = $request->getParsedBody();
+//        $auteur = R::dispense('auteurs');
+//        $auteur->import($data, 'nom,prenom');
+
+        $auteur = R::findOrCreate('auteurs', $data);
+
+        return $response->withJson($auteur->export());
+    }
 }
