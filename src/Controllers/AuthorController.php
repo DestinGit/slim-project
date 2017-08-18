@@ -24,4 +24,16 @@ class AuthorController
 
         return $response->withJson($auteur->export());
     }
+
+    public function deleteAction(Request $request, Response $response, array $args) {
+//        $id = $request->getParam('id') ?? null;
+        try{
+            $affectedRows = R::Exec("DELETE FROM auteurs WHERE id=:id", $args);
+            $success = $affectedRows == 1;
+        }catch (\Exception $e) {
+            $success = false;
+        }
+
+        return $response->withJson(['success'=>$success]);
+    }
 }
